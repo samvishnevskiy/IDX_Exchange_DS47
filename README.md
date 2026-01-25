@@ -1,11 +1,17 @@
-IDX Exchange – California Home Price Prediction
+# IDX Exchange – California Home Price Prediction
 
-DS47 Final Project
+## DS47 Final Project
 
- Project Overview
+## 📌 Project Overview
+This project aims to build a machine learning model to predict **California residential property close prices**
+using historical transaction data from the **California Regional Multiple Listing Service (CRMLS)**.
 
-This project aims to build a machine learning model to predict California residential property closing prices using historical transaction data from the California Regional Multiple Listing Service (CRMLS).
+The goal is to analyze property characteristics such as:
+- Living area
+- Number of bedrooms
+- Bathrooms
+- Lot size
 
-The goal is to analyze property characteristics such as living area, number of bedrooms, bathrooms, lot size, and other relevant features to estimate the final sales price of a single-family residence.
+to estimate the final sales price of a **single-family residence**.
 
-This project was completed as part of the IDX Exchange DS47 Data Science Program.
+
