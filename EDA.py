@@ -32,14 +32,14 @@ HighSchoolDistrict,PostalCode,AssociationFee,LotSizeSquareFeet,MiddleOrJuniorSch
 """
 pd.set_option("display.max_rows", 100)
 
-df202506 = pd.read_csv("raw/california/CRMLSSold202506.csv", encoding = "ISO-8859-1")
-df202507 = pd.read_csv("raw/california/CRMLSSold202507.csv", encoding = "ISO-8859-1")
-df202508 = pd.read_csv("raw/california/CRMLSSold202508.csv", encoding = "ISO-8859-1")
-df202509 = pd.read_csv("raw/california/CRMLSSold202509.csv", encoding = "ISO-8859-1")
-df202510 = pd.read_csv("raw/california/CRMLSSold202510.csv", encoding = "ISO-8859-1")
-df202511 = pd.read_csv("raw/california/CRMLSSold202511.csv", encoding = "ISO-8859-1")
+df202506 = pd.read_csv("CRMLSSold202506.csv", encoding = "ISO-8859-1")
+df202507 = pd.read_csv("CRMLSSold202507.csv", encoding = "ISO-8859-1")
+df202508 = pd.read_csv("CRMLSSold202508.csv", encoding = "ISO-8859-1")
+df202509 = pd.read_csv("CRMLSSold202509.csv", encoding = "ISO-8859-1")
+df202510 = pd.read_csv("CRMLSSold202510.csv", encoding = "ISO-8859-1")
+df202511 = pd.read_csv("CRMLSSold202511.csv", encoding = "ISO-8859-1")
 training_data = pd.concat([df202506, df202507, df202508, df202509, df202510, df202511])
-testing_data = pd.read_csv("raw/california/CRMLSSold202512.csv", encoding = "ISO-8859-1")
+testing_data = pd.read_csv("CRMLSSold202512.csv", encoding = "ISO-8859-1")
 
 print(((training_data.isna().mean() * 100).sort_values(ascending=False)))
 
@@ -63,7 +63,7 @@ testing_data = testing_data[['ClosePrice', 'LivingArea', 'LotSizeAcres', 'YearBu
 features_test = testing_data[['LivingArea', 'LotSizeAcres', 'YearBuilt', 'BathroomsTotalInteger','BedroomsTotal', 'GarageSpaces']]
 close_test = testing_data['ClosePrice']
 
-"""
+
 model = RandomForestRegressor(n_estimators=2000, max_depth=None, min_samples_leaf=500, n_jobs = -1, random_state=random.randint(1,100))
 model.fit(features_train, close_train)
 predicted_close = model.predict(features_test)
@@ -97,9 +97,9 @@ plt.plot([close_test.min(), close_test.max()],[close_test.min(), close_test.max(
 plt.xlabel("Actual")
 plt.ylabel("XGBoost Predicted")
 plt.show()
-"""
 
-#
+
+
 training_input_tensor = torch.tensor(StandardScaler().fit_transform(features_train), dtype = torch.float32)
 training_output_tensor = torch.tensor((np.log1p(close_train.values)).reshape(-1,1), dtype = torch.float32)
 
