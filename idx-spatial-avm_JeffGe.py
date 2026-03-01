@@ -15,7 +15,7 @@ def load_data():
     Step 1: Load and merge the raw data.
     """
     # Grab all monthly files
-    files = sorted(glob.glob('CRMLSSold2025*.csv'))
+    files = sorted(glob.glob('CRMLSSold20*.csv'))
     print(f">> Found {len(files)} datasets. Merging...")
     
     df_list = []
@@ -153,6 +153,8 @@ if __name__ == "__main__":
     print(f" MAE       : ${mae:,.0f}")
     print("="*35)
     
+    plot_importance(model, features)
+
     plot_importance(model, features)
 
 
