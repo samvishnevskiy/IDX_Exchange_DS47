@@ -17,12 +17,24 @@ from sktime.performance_metrics.forecasting import MedianAbsolutePercentageError
 from sklearn.metrics import mean_absolute_percentage_error
 import matplotlib.ticker as ticker
 import plotly.express as px
-
-
 from sklearn.neighbors import BallTree
 import numpy as np
 
+import nbformat
 
+# Replace with your notebook file name
+notebook_path = "model_SamVishnevskiy.ipynb"
+
+# Load the notebook
+with open(notebook_path, "r", encoding="utf-8") as f:
+    nb = nbformat.read(f, as_version=4)  # read with nbformat v5
+
+# Validate (optional, will raise an error if still broken)
+nbformat.validate(nb)
+
+# Write it back cleanly
+with open("model_SamVishnevskiy.ipynb", "w", encoding="utf-8") as f:
+    nbformat.write(nb, f)
 
 #zillow MDAPE about 8 percent vs Production MDAPE about 6 percent
 """
