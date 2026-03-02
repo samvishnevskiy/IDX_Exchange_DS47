@@ -18,6 +18,12 @@ from sklearn.metrics import mean_absolute_percentage_error
 import matplotlib.ticker as ticker
 import plotly.express as px
 
+
+from sklearn.neighbors import BallTree
+import numpy as np
+
+
+
 #zillow MDAPE about 8 percent vs Production MDAPE about 6 percent
 """
 Fields:
@@ -94,7 +100,34 @@ def process_data(training_data, testing_data):
     close_test = testing_data['ClosePrice']
     return features_train, close_train, features_test, close_test
 
+
+"""
+This add_spatial_features function is very heavily based on Jeff's, 
+the only real difference is that it only uses locations from the training data 
+to avoid any leaked information. Adding this slightly improves R^2 and MAPE,
+and it bassically leaves MdAPE unchanged
+""" 
+def add_spatial_features_train_test(features_train, features_test, train_prices, k=6):
+    train_coords = np.radians(features_train[['Latitude', 'Longitude']].values)
+    test_coords = np.radians(features_test[['Latitude', 'Longitude']].values)
+    
+    tree = BallTree(train_coords, metric='haversine')
+    
+    dist, ind = tree.query(train_coords, k=k)
+
+    train_neighbors = ind[:, 1:]
+    features_train['SpatialLag_Price'] = np.mean(train_prices[train_neighbors], axis=1)
+    
+
+    dist, ind = tree.query(test_coords, k=k)
+    test_neighbors = ind[:, :k-1]  
+    features_test['SpatialLag_Price'] = np.mean(train_prices[test_neighbors], axis=1)
+    
+    return features_train, features_test
+
 features_train, close_train, features_test, close_test = process_data(training_data, testing_data)
+# Add spatial features
+features_train, features_test = add_spatial_features_train_test(features_train, features_test, close_train.values, k=6)
 """
 encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
 training_zip_encoded = encoder.fit_transform(training_data[['PostalCode']])
