@@ -16,10 +16,11 @@ from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, r2_score
+from sklearn.metrics import mean_absolute_percentage_error, r2_score
 from sklearn.neighbors import BallTree
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sktime.performance_metrics.forecasting import MedianAbsolutePercentageError
 
 try:
     from xgboost import XGBRegressor
@@ -381,7 +382,7 @@ def evaluate_predictions(y_true, y_pred):
     return {
         "R2_price": float(r2_score(y_true, y_pred)),
         "R2_log_price": float(r2_score(y_true_log, y_pred_log)),
-        "MAE": float(mean_absolute_error(y_true, y_pred)),
+        "MdAPE": float(MedianAbsolutePercentageError()(y_true, y_pred)),
         "MAPE": float(mean_absolute_percentage_error(y_true, y_pred)),
     }
 

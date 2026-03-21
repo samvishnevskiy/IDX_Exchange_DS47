@@ -1,0 +1,45 @@
+{
+  "test_month": "2026-01",
+  "train_months": [
+    "2025-07",
+    "2025-08",
+    "2025-09",
+    "2025-10",
+    "2025-11",
+    "2025-12"
+  ],
+  "train_trim": {
+    "n_before": 66028,
+    "n_after": 65372,
+    "lower_threshold": 185000.0,
+    "upper_threshold": 8550000.0,
+    "trimmed_rows": 656,
+    "trim_rate": 0.009935179014963349
+  },
+  "test_trim": {
+    "n_before": 7322,
+    "n_after": 7248,
+    "lower_threshold": 175605.0,
+    "upper_threshold": 9289499.999999953,
+    "trimmed_rows": 74,
+    "trim_rate": 0.010106528270964218
+  },
+  "feature_columns": [
+    "BedroomsTotal",
+    "BathroomsTotalInteger",
+    "LivingArea",
+    "LotSizeSquareFeet",
+    "YearBuilt",
+    "Latitude",
+    "Longitude",
+    "HomeAge",
+    "BathsPerBedroom",
+    "LotLivingRatio",
+    "LogLivingArea",
+    "LogLotSize",
+    "SpatialLag_Price",
+    "ZIP_MedianPrice"
+  ],
+  "best_model": "xgboost",
+  "results_table_csv": "outputs\\tables\\model_results_2026-01.csv"
+}
