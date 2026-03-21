@@ -1,9 +1,7 @@
 ## Model Explanation: I used XGBoost as the main model because housing prices are highly non-linear and depend on interactions between features like size, rooms, and location. Tree-based models capture these patterns much better than linear models.
 ## I trained the model on log-transformed prices to handle the right-skewed distribution and to focus on percentage-based errors.
 
-## To capture location, I engineered two features: Spatial lag price, which reflects nearby home prices, ZIP median price, which captures the overall price level of each area  
-
-Both features are built using training data only to avoid data leakage.
+## To capture location, I engineered two features: Spatial lag price, which reflects nearby home prices, ZIP median price, which captures the overall price level of each area  Both features are built using training data only to avoid data leakage.
 
 import glob
 import json
