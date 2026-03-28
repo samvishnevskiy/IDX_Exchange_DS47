@@ -20,21 +20,6 @@ import plotly.express as px
 from sklearn.neighbors import BallTree
 import numpy as np
 
-import nbformat
-
-# Replace with your notebook file name
-notebook_path = "model_SamVishnevskiy.ipynb"
-
-# Load the notebook
-with open(notebook_path, "r", encoding="utf-8") as f:
-    nb = nbformat.read(f, as_version=4)  # read with nbformat v5
-
-# Validate (optional, will raise an error if still broken)
-nbformat.validate(nb)
-
-# Write it back cleanly
-with open("model_SamVishnevskiy.ipynb", "w", encoding="utf-8") as f:
-    nbformat.write(nb, f)
 
 #zillow MDAPE about 8 percent vs Production MDAPE about 6 percent
 """
@@ -55,7 +40,7 @@ pd.set_option("display.max_rows", 100)
 
 df202506 = pd.read_csv("CRMLSSold202506.csv", encoding = "ISO-8859-1")
 df202507 = pd.read_csv("CRMLSSold202507.csv", encoding = "ISO-8859-1")
-df202508 = pd.read_csv("CRMLSSold202508.csv", encoding = "ISO-8859-1")
+df202508 = pd.read_csv("CRMLSSold202508.csv", encoding = "ISO-8859-1") 
 df202509 = pd.read_csv("CRMLSSold202509.csv", encoding = "ISO-8859-1")
 df202510 = pd.read_csv("CRMLSSold202510.csv", encoding = "ISO-8859-1")
 df202511 = pd.read_csv("CRMLSSold202511.csv", encoding = "ISO-8859-1")
@@ -78,7 +63,7 @@ def process_data(training_data, testing_data):
     training_data = training_data[training_data['PropertySubType'] == "SingleFamilyResidence" ]
     training_data = training_data[(training_data['ClosePrice'] > 0 )& (training_data['LivingArea'] > 0) & (training_data["StateOrProvince"] == "CA")]
     #print(f"duplicate count: {training_data["ListingKey"].duplicated().sum()}")
-    training_data = training_data[(training_data['ClosePrice']  <= training_data['ClosePrice'].quantile(0.995)) & (training_data['ClosePrice']  >= training_data['ClosePrice'].quantile(0.005))]
+    #training_data = training_data[(training_data['ClosePrice']  <= training_data['ClosePrice'].quantile(0.995)) & (training_data['ClosePrice']  >= training_data['ClosePrice'].quantile(0.005))]
     training_data = training_data[['ClosePrice', 'LivingArea', 'LotSizeAcres', 'YearBuilt','BathroomsTotalInteger', 'BedroomsTotal', 'GarageSpaces', 'Longitude', 'Latitude', 'PostalCode', 'PoolPrivateYN', "City"]].dropna()
     postal_code_average = training_data.groupby("PostalCode")["ClosePrice"].mean().reset_index().rename(columns={'ClosePrice': 'PostalCodeAverage'})
     training_data["PricePerSquareFoot"] = training_data["ClosePrice"]/training_data["LivingArea"]
@@ -119,6 +104,7 @@ the only real difference is that it only uses locations from the training data
 to avoid any leaked information. Adding this slightly improves R^2 and MAPE,
 and it bassically leaves MdAPE unchanged
 """ 
+#exponentiate before passing in?
 def add_spatial_features_train_test(features_train, features_test, train_prices, k=6):
     train_coords = np.radians(features_train[['Latitude', 'Longitude']].values)
     test_coords = np.radians(features_test[['Latitude', 'Longitude']].values)
@@ -182,7 +168,7 @@ def grid_search():
             )
             model.fit(features_train, close_train)
 
-            preds = np.expm1(model.predict(features_test)).clip(5000, 1_000_000_000)
+            preds = np.expm1(model.predict(features_test)).clip(5000, 1000000000)
 
             r2 = r2_score(close_test, preds)
 
@@ -262,6 +248,59 @@ fig.update_layout(
 fig.show()
 
 
+luxury_threshold = features_train["PostalCodeAverage"].quantile(0.9) 
+
+luxury_train_mask = features_train["PostalCodeAverage"] >= luxury_threshold
+regular_train_mask = ~luxury_train_mask
+
+features_train_lux = features_train[luxury_train_mask]
+close_train_lux = close_train[luxury_train_mask]
+
+features_train_reg = features_train[regular_train_mask]
+close_train_reg = close_train[regular_train_mask]
+
+luxury_test_mask = features_test["PostalCodeAverage"] >= luxury_threshold
+regular_test_mask = ~luxury_test_mask
+
+features_test_lux = features_test[luxury_test_mask]
+features_test_reg = features_test[regular_test_mask]
+
+lux_model = xgb.XGBRegressor(enable_categorical=True, n_estimators=2500, max_depth=None, learning_rate=0.1, n_jobs=1, random_state=random.randint(1,100))
+
+reg_model = xgb.XGBRegressor(enable_categorical=True, n_estimators=2500, max_depth=None,   learning_rate=0.1,n_jobs=1, random_state=random.randint(1,100))
+
+lux_model.fit(features_train_lux, close_train_lux)
+reg_model.fit(features_train_reg, close_train_reg)
+
+predicted_close = pd.Series(index=features_test.index, dtype=float)
+predicted_close.name = close_test.name
+
+predicted_close[luxury_test_mask] = np.expm1(lux_model.predict(features_test_lux))
+predicted_close[regular_test_mask] = np.expm1(reg_model.predict(features_test_reg))
+predicted_close = predicted_close.clip(5000, 1000000000)
+
+r2 = r2_score(close_test, predicted_close) 
+print(f"Split-model XGBoost R^2: {r2}")
+
+
+r2_log = r2_score(np.log1p(close_test), np.log1p(predicted_close))
+print(f"Split model log r2: {r2_log}")
+
+mdape_score = MedianAbsolutePercentageError()(close_test, predicted_close)
+print(f"Split-model median absolute error percentage:: {mdape_score}")
+
+mape_score = mean_absolute_percentage_error(close_test, predicted_close)
+print(f"Split model mean absolute error percentage: {mape_score}")
+
+
+plt.scatter(close_test, predicted_close, alpha=0.1)
+plt.plot([close_test.min(), close_test.max()],[close_test.min(), close_test.max()])
+plt.xlabel("Actual")
+plt.ylabel("XGBoost Predicted")
+ax = plt.gca()
+ax.xaxis.set_major_formatter(ticker.StrMethodFormatter('${x:,.0f}'))
+ax.yaxis.set_major_formatter(ticker.StrMethodFormatter('${x:,.0f}'))
+plt.show()
 
 """
 training_input_tensor = torch.tensor(StandardScaler().fit_transform(features_train), dtype = torch.float32)
