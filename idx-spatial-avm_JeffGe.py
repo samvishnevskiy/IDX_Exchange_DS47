@@ -139,7 +139,6 @@ def base_clean(df):
     print(f">> Rows after scope + type cleaning: {df.shape[0]}")
     return df
 
-
 def get_latest_test_month(df):
     months = sorted(df["YearMonth"].dropna().unique())
     if not months:
@@ -210,7 +209,6 @@ def trim_closeprice_split_local(df, lower_q=0.005, upper_q=0.995):
         "trim_rate": float((n_before - n_after) / max(n_before, 1)),
     }
     return df, info
-
 
 def add_engineered_numeric_features(df):
     df = df.copy()
@@ -600,7 +598,7 @@ def run_recent_backtest(df, n_recent_tests=2, use_all_history=False):
         return combined
 
     return pd.DataFrame()
-
+#testing 
 
 if __name__ == "__main__":
     df = load_data("CRMLSSold20*.csv")
